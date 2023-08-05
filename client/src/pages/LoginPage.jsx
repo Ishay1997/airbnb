@@ -12,8 +12,9 @@ export default function LoginPage() {
   async function handelLoginSubmit(ev){
     ev.preventDefault();
     try{
-    const data = await axios.post('/login',{email,password});
-    setUser(data);
+    const response = await axios.post('/login',{email,password});
+    const user = response.data;
+    setUser(user);
     alert('login successful');
     setRedirect(true);
     }catch(e){
@@ -23,6 +24,7 @@ export default function LoginPage() {
   if (redirect){
     return <Navigate to={'/'} />
   }
+ 
   return (
     <div className="p-44 grow flex text-center justify-around">
       <div className="-mt-8">
