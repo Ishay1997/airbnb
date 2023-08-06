@@ -39,6 +39,24 @@ export default function PlacesPage() {
     });
     setPhotoLink("");
   }
+
+  function uploadPhoto(ev) {
+    const files = ev.target.files;
+    const data = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      data.set("photos", files[i]);
+    }
+    axios
+      .post("/upload", data, {
+        headers: { "Content-type": "multipart/form-data" },
+      })
+      .then((response) => {
+        const { data: filenames } = response;
+        setAddedPhotos((prev) => {
+          return [...prev, ...filenames];
+        });
+      });
+  }
   return (
     <div>
       {action !== "new" && (
@@ -100,15 +118,21 @@ export default function PlacesPage() {
             <div className="mt-2 grid gap-2 grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {addedPhotos.length > 0 &&
                 addedPhotos.map((link, index) => (
-                  <div key={index}>
+                  <div key={index} className="h-32 flex">
                     <img
-                      className="round"
-                      src={"http://localhost:4000/uploads/" + link}
+                      className="rounded-2xl w-full object-cover"
+                      src={"http://localhost:4000/" + link}
                       alt=""
                     />
                   </div>
                 ))}
-              <button className="flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-2 text-2xl text-gray-600">
+              <label className="h-32 cursor-pointer flex items-center gap-1 justify-center border bg-transparent rounded-2xl p-2 text-2xl text-gray-600">
+                <input
+                  type="file"
+                  multiple
+                  className="hidden"
+                  onChange={uploadPhoto}
+                />
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -124,7 +148,7 @@ export default function PlacesPage() {
                   />
                 </svg>
                 Upload
-              </button>
+              </label>
             </div>
             {preInput("Description", "description of the place")}
             <textarea

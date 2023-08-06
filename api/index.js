@@ -4,6 +4,9 @@ const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
 app.use('/uploads', express.static(__dirname+'/uploads'));
 const imageDownloader = require('image-downloader');
+const multer = require('multer');
+const fs =require('fs');
+
 const YOUR_MONGODB_URI_HERE =
   "mongodb+srv://ishaylevy8:m0bJKttsWypprdeL@cluster0.l4b3nhu.mongodb.net/?retryWrites=true&w=majority";
 //'mongodb+srv://home:c5pFGTVgYm7VudwT@cluster0.l4b3nhu.mongodb.net/?retryWrites=true&w=majority'
@@ -113,4 +116,23 @@ app.post('/upload-by-link', async (req, res) => {
     }
 });
 
+const photosMiddleware = multer({dest:'uploads'});
+app.use('/uploads', express.static(__dirname + '/uploads'));
+
+// ... (other middleware and routes)
+
+// Remove the '/uploads' part here
+app.post('/upload', photosMiddleware.array('photos', 100), (req, res) => {
+  const uploadedFiles = [];
+  for (let i = 0; i < req.files.length; i++) {
+    const { path, originalname } = req.files[i];
+    const parts = originalname.split('.');
+    const ext = parts[parts.length - 1];
+
+    const newPath = path + '.' + ext;
+    fs.renameSync(path, newPath);
+    uploadedFiles.push(newPath.replace('uploads/', '')); // No need to include 'uploads/' here
+  }
+  res.json(uploadedFiles);
+});
 app.listen(4000);
