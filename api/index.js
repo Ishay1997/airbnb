@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+app.use('/uploads', express.static(__dirname+'/uploads'));
+const imageDownloader = require('image-downloader');
 const YOUR_MONGODB_URI_HERE =
   "mongodb+srv://ishaylevy8:m0bJKttsWypprdeL@cluster0.l4b3nhu.mongodb.net/?retryWrites=true&w=majority";
 //'mongodb+srv://home:c5pFGTVgYm7VudwT@cluster0.l4b3nhu.mongodb.net/?retryWrites=true&w=majority'
@@ -77,7 +79,7 @@ app.post("/login", async (req, res) => {
 });
 
 app.get("/profile", (req, res) => {
-  const { token } = req.cookies;
+  const {token} = req.cookies;
   if (token) {
     jwt.verify(token, jwtSecret, {}, async (err, userData) => {
       if (err) throw err;
@@ -94,4 +96,21 @@ app.get("/profile", (req, res) => {
 app.post('/logout', (req,res) =>{
     res.cookie('token', '').json(true);
 });
+app.post('/upload-by-link', async (req, res) => {
+    const { link } = req.body;
+    const newName = 'photo' + Date.now() + '.jpg';
+
+    try {
+        await imageDownloader.image({
+            url: link,
+            dest: __dirname + '/uploads/' + newName,
+        });
+
+        res.json(newName);
+    } catch (error) {
+        console.error('Error downloading image:', error);
+        res.status(500).json({ error: 'Image download failed' });
+    }
+});
+
 app.listen(4000);
